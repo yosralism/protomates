@@ -18,7 +18,7 @@ while True:
 
 
 def main():
-	filename = '/home/protomates/catkin_ws/src/protomates/scripts/out.json'
+	filename = '/home/protomates2/catkin_ws/src/protomates/scripts/out.json'
 	listObj = []
 
 	# Check if file exists
@@ -28,8 +28,8 @@ def main():
 	while True:
 		while True:
 			try:
-				results = client.query('SELECT * FROM nuc ORDER BY time LIMIT 10')
-				df = results['nuc']
+				results = client.query('SELECT * FROM protomates2 ORDER BY time LIMIT 10')
+				df = results['protomates2']
 				break
 			except:
 				continue
@@ -74,7 +74,7 @@ def main():
 				listObj = json.load(fp)
 				listObj.pop(0)
 			# send json data
-			p = subprocess.Popen(['bash','/home/protomates/catkin_ws/src/protomates/scripts/log.sh'])
+			p = subprocess.Popen(['bash','/home/protomates2/catkin_ws/src/protomates/scripts/log.sh'])
 
 			output, err = p.communicate()
 			if p.returncode != 0:
@@ -83,7 +83,7 @@ def main():
 			# clear json file
 			open(filename, 'w').close()
 
-			client.query('DELETE FROM nuc WHERE time <=' + str(latest_time))
+			client.query('DELETE FROM protomates2 WHERE time <=' + str(latest_time))
 
 		except:
 			logger.info("can't connect to thingsboard, continue to cache data")

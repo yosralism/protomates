@@ -27,13 +27,13 @@ gps_type = ['GPS_FIX_TYPE_NO_GPS',
             'GPS_FIX_TYPE_STATIC',
             'GPS_FIX_TYPE_PPP']
 
-# influx configuration
-ifuser = "nuc"
+#influx configuration
+ifuser = "protomates2"
 ifpass = "123123"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "nuc"
+measurement_name = "protomates2"
 
 #sleep(300)
             
@@ -59,6 +59,7 @@ def callback(gps_status, heading, imu):
     q4 = imu.orientation.w
 
     pitch_y = pitch(q1,q2,q3,q4)
+
  
     body = [
         {
@@ -74,6 +75,7 @@ def callback(gps_status, heading, imu):
             }
         } 
     ]
+    
     print(gps_status.lat/10000000)
     print(gps_status.lon/10000000)
     print(pitch_y)
@@ -90,7 +92,7 @@ gps_status_sub2 = message_filters.Subscriber('/mavros/gpsstatus/gps2/raw', GPSRA
 heading_sub = message_filters.Subscriber('/mavros/vfr_hud', VFR_HUD)
 imu_sub = message_filters.Subscriber('/mavros/imu/data', Imu)
 
-ts = message_filters.ApproximateTimeSynchronizer([gps_status_sub2, heading_sub, imu_sub], 30, 0.1, allow_headerless=True)
+ts = message_filters.ApproximateTimeSynchronizer([gps_status_sub2, heading_sub, imu_sub], 10, 0.1, allow_headerless=True)
 ts.registerCallback(callback)
 
 # spin() simply keeps python from exiting until this node is stopped
