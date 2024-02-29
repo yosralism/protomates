@@ -28,12 +28,12 @@ gps_type = ['GPS_FIX_TYPE_NO_GPS',
             'GPS_FIX_TYPE_PPP']
 
 #influx configuration
-ifuser = "protomates2"
+ifuser = "smartd"
 ifpass = "123123"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "protomates2"
+measurement_name = "smartd"
 
 #sleep(300)
             
@@ -68,6 +68,7 @@ def callback(gps_status, heading, imu):
             "fields":{
                 "latitude": gps_status.lat/10000000,
                 "longitude": gps_status.lon/10000000,
+                "altitude": gps_status.alt/1000,
                 "slope": pitch_y,
                 "heading": heading.heading,
                 "fix_type": gps_type[gps_status.fix_type],
@@ -76,13 +77,14 @@ def callback(gps_status, heading, imu):
         } 
     ]
     
-    print(gps_status.lat/10000000)
-    print(gps_status.lon/10000000)
-    print(pitch_y)
-    print(heading.heading)
-    print(gps_type[gps_status.fix_type])
-    print(gps_status.satellites_visible)
-
+    print(f"Latitude: {gps_status.lat/10000000}")
+    print(f"Longitude: {gps_status.lon/10000000}")
+    print(f"Altitude: {gps_status.alt/1000}")
+    print(f"Instantanous: {pitch_y}")
+    print(f"Heading: {heading.heading}")
+    print(f"GPS Type: {gps_type[gps_status.fix_type]}")
+    print(f"Satellites Count: {gps_status.satellites_visible}")
+    print("-------------------------------")
     ifclient = InfluxDBClient(ifhost,ifport,ifuser,ifpass,ifdb)
     ifclient.write_points(body)
 
@@ -92,13 +94,8 @@ gps_status_sub2 = message_filters.Subscriber('/mavros/gpsstatus/gps2/raw', GPSRA
 heading_sub = message_filters.Subscriber('/mavros/vfr_hud', VFR_HUD)
 imu_sub = message_filters.Subscriber('/mavros/imu/data', Imu)
 
-ts = message_filters.ApproximateTimeSynchronizer([gps_status_sub2, heading_sub, imu_sub], 10, 0.1, allow_headerless=True)
+ts = message_filters.ApproximateTimeSynchronizer([gps_status_sub2, heading_sub, imu_sub], 5, 1, allow_headerless=True)
 ts.registerCallback(callback)
 
 # spin() simply keeps python from exiting until this node is stopped
 rospy.spin()
-
-
-
-
-

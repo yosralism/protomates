@@ -148,7 +148,7 @@ include_directories(
 
 ############roscp rospy_tutorials AddTwoInts.srv srv/AddTwoInts.srvst to setup.py, you can choose the destination
  catkin_install_python(PROGRAMS
-   scripts/talker.py scripts/listener.py scripts/subscribe.py scripts/rtk.py
+   scripts/talker.py scripts/listener.py scripts/subscribe.py scripts/rtk.py scripts/ntrip_pub.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
