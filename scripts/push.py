@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from influxdb import DataFrameClient
 from time import sleep
 import json
@@ -32,12 +34,14 @@ def main():
         raise Exception("File not found")
 
     while True:
-        mysql_conn = mysql.connector.connect(host=mysql_host,user=mysql_user,password=mysql_password,database=mysql_db)
-        cursor = mysql_conn.cursor()
-
+        try:
+            mysql_conn = mysql.connector.connect(host=mysql_host,user=mysql_user,password=mysql_password,database=mysql_db)
+            cursor = mysql_conn.cursor()
+        except:
+            pass
         while True:
             try:
-                results = client.query('SELECT * FROM smartd ORDER BY time LIMIT 10')
+                results = client.query('SELECT * FROM smartd ORDER BY time LIMIT 100')
                 df = results['smartd']
                 break
             except:
@@ -53,7 +57,7 @@ def main():
         print(listObj)
 
         print(type(listObj))
-
+        listData = []
         latest_time = 0
         for row in range(df.shape[0]):
             latest_time = round(df.index[row].to_pydatetime().timestamp()*1000000000)
@@ -71,22 +75,24 @@ def main():
                         }
                 }
                 listObj.append(body)
-                insert_query = "INSERT INTO prg_data (ts, latitude, longitude, altitude, slope, heading, gps_type, satellites_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s )"
                 data_insert = (int(latest_time), float(df['latitude'][row]), float(df['longitude'][row]), float(df['altitude'][row]), float(df['slope'][row]),  int(df['heading'][row]), str(df['fix_type'][row]), int(df['satellites_count'][row]))
-                cursor.execute(insert_query, data_insert)
-                mysql_conn.commit()
-                print(body)
+                listData.append(data_insert)
             except:
                 continue
-                
-        cursor.close()
-        mysql_conn.close()
-        # Verify updated list
-        print(listObj)
+        try:
+            insert_query = "INSERT INTO prg_data (ts, latitude, longitude, altitude, slope, heading, gps_type, satellites_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s )"
+            cursor.executemany(insert_query, listData)
+            mysql_conn.commit()
+            print(body)
+            cursor.close()
+            mysql_conn.close()
+            # Verify updated list
+            print(listObj)
 
-        with open(filename, 'w') as json_file:
-            json.dump(listObj, json_file, indent=4, separators=(',',': '))
-
+            with open(filename, 'w') as json_file:
+                json.dump(listObj, json_file, indent=4, separators=(',',': '))
+        except:
+            pass
         try:
             # filename = '/home/stac/Projects/PAMA stuff/out.json'
             # check json not empty
